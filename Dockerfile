@@ -1,7 +1,7 @@
 
 FROM alpine:latest
 
-MAINTAINER monlgq <monelgq@163.com>
+LABEL author=monlgq  email="monelgq@163.com"
 
 ENV STUNNEL_VER 5.39
 ENV STUNNEL_URL https://www.stunnel.org/downloads/stunnel-$STUNNEL_VER.tar.gz
