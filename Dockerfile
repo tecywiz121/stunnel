@@ -1,37 +1,26 @@
+FROM alpine:3.6
+LABEL maintainer="Sam Wilson <tecywiz121@hotmail.com>"
 
-FROM alpine:latest
-
-LABEL author=monlgq  email="monelgq@163.com"
-
-ENV STUNNEL_VER 5.39
-ENV STUNNEL_URL https://www.stunnel.org/downloads/stunnel-$STUNNEL_VER.tar.gz
-#ENV STUNNEL_SHA256 0ee64774d7a720f3ffd129b08557ee0882704c7f65b859c40e315a175b68a6fd
-
-ENV STUNNEL_FILE stunnel-$STUNNEL_VER.tar.gz
-ENV STUNNEL_TEMP stunnel-$STUNNEL_VER-build
-# ENV STUNNEL_CONF /usr/local/etc/stunnel/stunnel.conf
-
-ENV STUNNEL_DEPS openssl
-ENV BUILD_DEPS curl alpine-sdk openssl-dev
+ARG STUNNEL_URL=https://www.stunnel.org/downloads/stunnel-5.42.tar.gz
+ARG STUNNEL_SHA256=1b6a7aea5ca223990bc8bd621fb0846baa4278e1b3e00ff6eee279cb8e540fab
 
 RUN set -xe \
     && apk update \
-    && apk add $STUNNEL_DEPS $BUILD_DEPS \
-    && mkdir $STUNNEL_TEMP \
-        && cd $STUNNEL_TEMP \
-        && curl -sSL $STUNNEL_URL -o $STUNNEL_FILE \
-        && tar -xf $STUNNEL_FILE --strip 1 \
+    && apk add openssl curl alpine-sdk openssl-dev \
+    && mkdir build \
+        && cd build \
+        && curl -sSL "$STUNNEL_URL" -o stunnel.tar.gz \
+        && echo "$STUNNEL_SHA256  stunnel.tar.gz" | sha256sum -c - \
+        && tar -xf stunnel.tar.gz --strip 1 \
         && ./configure \
         && make install \
         && cd .. \
-        && rm -rf $STUNNEL_TEMP $STUNNEL_FILE \
-    && apk --purge del $BUILD_DEPS \
+        && rm -rf build stunnel.tar.gz \
+    && apk --purge del curl alpine-sdk openssl-dev \
+    && rm -rf /var/cache/apk/* \
     && mkdir -p /etc/stunnel/
 
-# ADD ./stunnel.conf /etc/stunnel/stunnel.conf
+VOLUME ["/etc/stunnel"]
 
-WORKDIR /etc/stunnel 
-
-#RUN chmod 400 userpsk.txt && chmod 400 stunnel.conf
-
+WORKDIR /tmp
 CMD ["stunnel", "/etc/stunnel/stunnel.conf"]
